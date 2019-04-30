@@ -1,0 +1,289 @@
+#-*- coding:utf-8 -*-
+'''
+Created on 2019. 1. 30.
+
+@author: user
+'''
+
+from flask import Flask, request
+from DataBase import DBController
+
+app=Flask(__name__)
+DB=DBController()
+
+@app.route("/SignUp",methods = ["GET","POST"])
+
+def SignUp(): #회원가입
+    DB.DBConn()    
+    if 'nick'  in request.form and 'password'  in request.form and 'phone'  in request.form:
+        _userNick=request.form['nick']         
+        _userPass = request.form['password']
+        _userPhone = request.form['phone']
+        
+        msg=str() #닉네임 중복 체크
+        sql="select nick from user where nick='"+_userNick+"'"
+        data = DB.DBSelect(sql)
+        sql="select nick from user where phone='"+_userPhone+"'" #전화번호 중복체크
+        _phoneData = DB.DBSelect(sql)
+        if data:
+            msg = "overlap"
+        elif _phoneData:
+            msg = "phone overlap"
+        else:
+            sql = "insert into user(nick, pass, phone) value('"+_userNick+"', password('"+_userPass+"'), '"+_userPhone+"')"
+            DB.DBChange(sql) #데이터베이스에 유저정보 저장
+            msg = "succ"
+    DB.DBClose()
+    return msg
+    
+@app.route("/SignIn",methods = ["GET","POST"])
+
+def Login(): #로그인
+    DB.DBConn()  
+    if 'nick'  in request.form and 'password'  in request.form:
+        _userNick=request.form['nick']         
+        _userPass = request.form['password']
+        
+    msg = str()
+    sql="select idx, tuto from user where nick='"+_userNick+"' and pass=password('"+_userPass+"')"
+    data = DB.DBSelect(sql) #아이디와 패스워드 일치하는지
+    if data:
+        msg = "login"
+        msg+=","+str(data[0]["tuto"])
+    else:
+        msg = "fail"
+        
+    DB.DBClose()    
+    return msg
+
+@app.route("/Tuto",methods = ["GET","POST"])
+
+def Tutorial():
+    DB.DBConn()  
+    if 'nick'  in request.form:
+        _userNick =  request.form['nick']
+    sql="update user set tuto = 1 where nick = '"+_userNick+"'"
+    DB.DBChange(sql) 
+    DB.DBClose()    
+    return "succ"
+
+@app.route("/UserDel", methods = ["GET","POST"])
+
+def UserDelete():
+    DB.DBConn()  
+    if 'nick'  in request.form and 'password'  in request.form:
+        _userNick=request.form['nick']         
+        _userPass = request.form['password']
+        
+        msg = str()
+        sql="select idx, tuto from user where nick='"+_userNick+"' and pass=password('"+_userPass+"')"
+        data = DB.DBSelect(sql) #아이디와 패스워드 일치하는지
+        if data:
+            sql = "delete from user where nick='"+_userNick+"'"
+            DB.DBChange(sql)
+            msg = "succ"
+        else:
+            msg = "fail"        
+    DB.DBClose()    
+    return msg
+
+@app.route("/UserSearch", methods=["GET", "POST"])
+
+def UserSearch():
+    DB.DBConn()  
+    if 'flag'  in request.form:
+        _flag=request.form['flag']         
+        _userPhone = request.form['phone']
+        
+        if _flag=="nick":
+            sql="select nick from user where phone='"+_userPhone+"'"
+            data = DB.DBSelect(sql) #아이디와 패스워드 일치하는지
+            if data:
+                msg = data[0]['nick']
+            else:
+                msg = "fail"
+        elif _flag=="pass":
+            _userNick=request.form['nick']
+            sql="select nick from user where phone='"+_userPhone+"' and nick='"+_userNick+"'"
+            data = DB.DBSelect(sql)
+            if data:
+                msg = "succ"
+            else:
+                msg = "fail"        
+    DB.DBClose()    
+    return msg
+
+@app.route("/ChangePassword", methods=["GET", "POST"])
+
+def ChangePassword():  
+    DB.DBConn()  
+    if 'nick'  in request.form:
+        _userNick=request.form['nick']         
+        _userPass = request.form['pass']
+        
+        sql="update user set pass=password('"+_userPass+"') where nick='"+_userNick+"'"
+        DB.DBChange(sql) #아이디와 패스워드 일치하는지
+   
+    DB.DBClose()    
+    return "succ"
+
+@app.route("/Friends", methods = ["GET","POST"])
+
+def Friends():
+    DB.DBConn()   
+    if "flag" in request.form:
+        _flag = request.form["flag"]
+        _userNick = request.form["nick"]
+    
+    #유저 친구 목록 불러오기
+        _userFriend=list()
+        sql = "select nick from user where user.idx in (select friend.friend_idx from friend inner join user on user.idx=friend.user_idx where user.nick='"+_userNick+"')"
+        _userFriend += DB.DBSelect(sql)
+        sql = "select nick from user where user.idx in (select friend.user_idx from friend inner join user on user.idx=friend.friend_idx where user.nick='"+_userNick+"')"
+        _userFriend+=DB.DBSelect(sql)    
+        
+        _sendReq=list() #친구 신청 보낸 목록
+        _recvReq=list() #친구신청 받은 목록
+        sql = "select nick from user where user.idx in (select friend_req.friend_idx from friend_req inner join user on user.idx=friend_req.user_idx where user.nick='"+_userNick+"')"
+        _sendReq += DB.DBSelect(sql)
+        sql = "select nick from user where user.idx in (select friend_req.user_idx from friend_req inner join user on user.idx=friend_req.friend_idx where user.nick='"+_userNick+"')"
+        _recvReq+=DB.DBSelect(sql) 
+                        
+        if _flag=="list": #친구 리스트 보내기
+            if _userFriend:
+                _friendLen = len(_userFriend)
+                msg =str()
+                for num in range(0,_friendLen+1):
+                    if num==_friendLen-1:
+                        msg += ( _userFriend[num]["nick"])
+                        return msg
+                    else:
+                        msg += ( _userFriend[num]["nick"]+",")
+            else:
+                msg = "no friends"
+                return msg
+                
+        elif _flag =="del": #유저 친구 삭제하기
+            _friendNick = request.form["friend"]
+            sql = "delete from friend where (user_idx=(select idx from user where user.nick='"+_userNick+"') and friend_idx=(select idx from user where user.nick='"+_friendNick+"')) or (user_idx=(select idx from user where user.nick='"+_friendNick+"') and friend_idx=(select idx from user where user.nick='"+_userNick+"'))"
+            DB.DBChange(sql)
+            msg = "succ"
+            return msg
+        
+        elif _flag =="search": #유저 검색하기
+            _searchNick = request.form["search"]
+              
+            sql = "select user.score from user where user.nick ='"+_searchNick+"'"
+            data = DB.DBSelect(sql)
+            if data:
+                _searchScore = data[0]["score"]
+                msg = str(_searchScore)
+            else:
+                msg = "fail"   
+            return msg 
+        
+        elif _flag =="request": #친구요청 하기
+            _reqNick = request.form["request"]
+            if _userNick==_reqNick:
+                return "already"
+            _userFriend+=_sendReq+_recvReq
+            _friendLen = len(_userFriend)
+            for num in range (0,_friendLen+1):
+                if num<_friendLen and  _userFriend[num]["nick"]==_reqNick:
+                    msg = "already"
+                    return msg 
+                elif num==_friendLen-1 or _friendLen==0:
+                    sql = "insert into friend_req(user_idx) select idx from user where user.nick = '"+_userNick+"'"
+                    DB.DBChange(sql)
+                    sql = "update friend_req set friend_idx = (select idx from user where user.nick='"+_reqNick+"') where user_idx=(select idx from user where user.nick='"+_userNick+"') and friend_idx = 0"
+                    DB.DBChange(sql)
+                    msg = "succ"
+                    return msg 
+                
+        elif _flag =="reqlist": #친구요청목록 보내기
+            if _recvReq:
+                _reqLen = len(_recvReq)
+                msg =str()
+                for num in range(0,_reqLen+1):
+                    if num==_reqLen-1:
+                        msg += ( _recvReq[num]["nick"])
+                        return msg
+                    else:
+                        msg += ( _recvReq[num]["nick"]+",")
+            else:
+                msg = "no request"
+                return msg
+            
+        elif _flag=="accept": #친구 요청 수락
+            _acceptNick = request.form["accept"]  
+            sql = "insert into friend(user_idx) select idx from user where user.nick = '"+_userNick+"'"
+            DB.DBChange(sql)
+            sql = "update friend set friend_idx = (select idx from user where user.nick='"+_acceptNick+"') where user_idx=(select idx from user where user.nick='"+_userNick+"') and friend_idx = 0"
+            DB.DBChange(sql)
+            sql = "delete from friend_req where (user_idx=(select idx from user where user.nick='"+_acceptNick+"') and friend_idx=(select idx from user where user.nick='"+_userNick+"'))"
+            DB.DBChange(sql)
+            msg = "succ"
+            return msg
+        
+        elif _flag=="refuse": #친구 요청 거절하기
+            _refuseNick = request.form["refuse"] 
+            sql = "delete from friend_req where (user_idx=(select idx from user where user.nick='"+_refuseNick+"') and friend_idx=(select idx from user where user.nick='"+_userNick+"'))"
+            DB.DBChange(sql)
+            msg = "succ"
+            return msg
+            
+    DB.DBClose()
+
+@app.route("/Ranking", methods = ["GET","POST"])
+
+def Ranking():
+    DB.DBConn()
+    if 'nick' in request.form:
+        _userNick = request.form['nick']
+        _rankList = list()
+        sql = "SELECT score FROM user WHERE user.nick = '"+_userNick+"'"
+        _userScore = DB.DBSelect(sql) 
+        sql = "SELECT nick, score FROM user ORDER BY `user`.`score` DESC LIMIT 100"
+        _rankList += DB.DBSelect(sql)
+        _listLen = len(_rankList)
+        msg=str()
+        for num in range (0,_listLen+1):
+            if num==0:
+                msg+=str(_userScore[0]['score'])+","
+            if num==_listLen-1:
+                msg+=_rankList[num]['nick']+","+str(_rankList[num]['score'])
+                return msg
+            else:
+                msg+=_rankList[num]['nick']+","+str(_rankList[num]['score'])+","
+                
+    DB.DBClose()
+
+@app.route("/BattleEnd", methods = ["GET","POST"])
+
+def GameEnd():
+    DB.DBConn()   
+    if "flag" in request.form and 'nick'  in request.form: #닉네임과 이겼는지 졌는지 불러오기
+        _flag = request.form["flag"]
+        _userNick = request.form["nick"]
+        sql = "SELECT score FROM user WHERE user.nick = '"+_userNick+"'"
+        data = DB.DBSelect(sql)      
+        
+        if _flag == "win" : #이겼을 경우
+            _score = data[0]["score"] + 20 #이기면 점수 20점 더하기
+            sql = "update user set score ="  + str(_score) +" where nick = '"+_userNick+"'"
+            DB.DBChange(sql)
+            msg = _score #승률 계산
+            return str(msg)
+        
+        elif _flag =="lose":
+            _score = data[0]["score"] 
+            if  _score>=10:
+                _score -= 10 #지면 점수 10점 빼기
+            sql = "update user set score ="  + str(_score) +" where nick = '"+_userNick+"'"
+            DB.DBChange(sql)
+            msg = _score
+            return str(msg)
+    
+    DB.DBClose()
+        
+app.run(host="192.168.0.15",port=10000, debug=True)
