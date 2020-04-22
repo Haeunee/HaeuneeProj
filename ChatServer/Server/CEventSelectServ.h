@@ -17,7 +17,7 @@ public:
     CEventSelectServ();
     ~CEventSelectServ();
 
-    static CServerBase* evtServerBase;
+    static std::shared_ptr<CServerBase> evtServerBase;
 
     void Init();
 

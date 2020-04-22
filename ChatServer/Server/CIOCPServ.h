@@ -27,7 +27,7 @@ class CIOCPServ : public Server
 public:
     CIOCPServ();
     ~CIOCPServ();
-    static CServerBase* iocpServBase;
+	static std::shared_ptr<CServerBase> iocpServBase;
     void Init();
     void SendMsg(char _buf[BUF_SIZE], SOCKET _sock);
     static unsigned WINAPI RecvMsg(LPVOID pComPort);

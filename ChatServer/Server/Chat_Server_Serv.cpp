@@ -6,8 +6,8 @@
 #include "CEventSelectServ.h"
 #include "CIOCPServ.h"
 
-CServerBase* CIOCPServ::iocpServBase = new CServerBase{};
-CServerBase* CEventSelectServ::evtServerBase = new CServerBase{};
+std::shared_ptr<CServerBase> CIOCPServ::iocpServBase(new CServerBase{});
+std::shared_ptr<CServerBase> CEventSelectServ::evtServerBase(new CServerBase{});
 
 enum eServerType
 {
@@ -26,11 +26,11 @@ int main()
         cout << "Thread Cnt(0 : Thread Cnt = CPU Cnt)" << endl;
         cin >> threadCnt;
 
-        Server* serv{};
+        std::shared_ptr<Server> serv{};
         if (eServerType::EVENT_SEL == servType)
-            serv = new CEventSelectServ{};
+			serv = std::shared_ptr<Server>(new CEventSelectServ{});
         else if (eServerType::IOCP == servType)
-            serv = new CIOCPServ{};
+            serv = std::shared_ptr<Server>(new CIOCPServ{});
         else
             continue;
 
