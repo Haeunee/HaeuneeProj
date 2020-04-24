@@ -86,8 +86,8 @@ unsigned WINAPI CIOCPServ::RecvMsg(LPVOID pComPort)
                 if (byteTrans <= 0)
                 {
                     iocpServBase->OutUser(handleData->clntSock);
-                    delete(ioData);
-                    delete(handleData);
+					safe_delete(ioData);
+					safe_delete(handleData);
                     continue;
                 }
                 iocpServBase->CheckMsg(ioData->buf, handleData->clntSock);
@@ -102,7 +102,7 @@ unsigned WINAPI CIOCPServ::RecvMsg(LPVOID pComPort)
         }
         else
         {
-            delete(ioData);
+			safe_delete(ioData);
             cout << "sendMsg" << endl;
         }
     }

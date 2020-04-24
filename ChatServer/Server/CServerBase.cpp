@@ -2,7 +2,7 @@
 #include "CServerBase.h"
 #include "CAdoDBConn.h"
 
-CAdoDBConn* dbConn = new CAdoDBConn;
+std::shared_ptr<CAdoDBConn> dbConn(new CAdoDBConn);
 
 void CServerBase::CheckMsg(const char _msg[BUF_SIZE], SOCKET _sock)
 {

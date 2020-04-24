@@ -4,7 +4,7 @@
 CAdoDBConn::CAdoDBConn()
 {
     CoInitialize(0);
-    InitDB("ChatTest", "chat1q2w1", "10.10.10.52", "Chat_DB", "10001");
+    InitDB("ChatTest", "chat1q2w1", "10.10.10.52", "Chat_DB", "20000");
 }
 
 
@@ -33,7 +33,7 @@ BOOL CAdoDBConn::InitDB(string _id, string _pass, string _DBIp, string _dbName, 
     }
     catch (_com_error _ex)
     {
-        cout << "출처 : " << _ex.Source() << "설명 : " << _ex.Description() << endl;
+        cout << "출처 : " << _ex.Source() << "\n설명 : " << _ex.Description() << endl;
         return FALSE;
     }
 
@@ -58,6 +58,6 @@ void CAdoDBConn::AddDBChatLog(int _type, int _sock, char _msg[512])
     }
     catch (_com_error _ex)
     {
-        cout << "출처 : " << _ex.Source() << "설명 : " << _ex.Description() << endl;
+        cout << "출처 : " << _ex.Source() << "\n설명 : " << _ex.Description() << endl;
     }
 }

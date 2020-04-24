@@ -54,6 +54,10 @@ void CEventSelectServ::Init()
             }
         }
     }
+	for (int i = 0; i < cnt; ++i)
+	{
+		safe_delete(evtThreadList[i]);
+	}
 }
 
 unsigned WINAPI CEventSelectServ::CheckEvent(LPVOID _eventList)

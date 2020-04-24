@@ -63,13 +63,13 @@ struct sUser
 struct sRoomMessage
 {
     int idx{};
-    int roomNum = 1;
+	int roomNum{ 1 };
     char msg[MSG_SIZE]{};
 };
 
 struct sChkRoomList
 {
-    int idx = eChatFlag::CHK_ROOM;
+	int idx{ eChatFlag::CHK_ROOM };
     int flag{};
     int roomNum[MAX_ROOM_CNT]{};
 }; 
