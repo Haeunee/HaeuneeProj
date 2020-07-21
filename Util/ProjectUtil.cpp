@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "ProjectUtil.h"
 
 FileUtil::FileUtil(wchar_t* _fileName, const MODE _mode)
@@ -77,7 +79,7 @@ RandomUtil::RandomUtil()
 {
 	std::random_device randDev{};
 
-	// ³­¼ö »ı¼º ¿£ÁøÀ» ÃÊ±âÈ­ ÇÔ
+	// ë‚œìˆ˜ ìƒì„± ì—”ì§„ì„ ì´ˆê¸°í™” í•¨
 	std::mt19937_64 makeRand(randDev());
 	m_RandEngine		= makeRand;
 }
