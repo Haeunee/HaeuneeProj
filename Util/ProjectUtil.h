@@ -12,6 +12,7 @@ template<class T, size_t _maxSize>
 class StringUtil
 {
 public:
+	StringUtil() {}
 	StringUtil(const T* _str) { this->Format(_str); }
 
 	const T* Format(const T* _str, ...)
@@ -28,8 +29,8 @@ public:
 
 	const T* Append(const T* _str)
 	{
-		size_t len{ strlen(m_StrArr.data()) };
-		char* data{ &m_StrArr[len] };
+		size_t len{ __GetLen(&m_StrArr[0]) };
+		T* data{ &m_StrArr[len] };
 		va_list args{};
 
 		va_start(args, _str);
@@ -42,10 +43,12 @@ public:
 	const T* Get() { return m_StrArr.data(); }
 
 private:
-	size_t _maxSize;
-	std::array<char, 10> m_StrArr{};
-	uint64_t m_nowIdx{};
+	size_t              __GetLen(TCHAR* _str) const { return _tcslen(_str); }
+
+private:
+	std::array<T, _maxSize> m_StrArr{};
 };
+using StringBufSize = StringUtil<TCHAR, BUF_SIZE>;
 
 template<class T>
 class ObjectPool
