@@ -5,19 +5,19 @@
 #include <chrono>
 #include <array>
 #include <random>
+#include <tchar.h>
 
 #include "stdafx.h"
-
-template<class T, size_t _maxSize>
+template<size_t _maxSize>
 class StringUtil
 {
 public:
 	StringUtil() {}
-	StringUtil(const T* _str) { this->Format(_str); }
+	StringUtil(const TCHAR* _str) { this->Format(_str); }
 
-	const T* Format(const T* _str, ...)
+	const TCHAR* Format(const TCHAR* _str, ...)
 	{
-		T* data{ m_StrArr.data() };
+		TCHAR* data{ m_StrArr.data() };
 		va_list args{};
 
 		va_start(args, _str);
@@ -27,10 +27,10 @@ public:
 		return data;
 	}
 
-	const T* Append(const T* _str)
+	const TCHAR* Append(const TCHAR* _str)
 	{
 		size_t len{ __GetLen(&m_StrArr[0]) };
-		T* data{ &m_StrArr[len] };
+		TCHAR* data{ &m_StrArr[len] };
 		va_list args{};
 
 		va_start(args, _str);
@@ -40,15 +40,16 @@ public:
 		return data;
 	}
 
-	const T* Get() { return m_StrArr.data(); }
+	const TCHAR* Get() { return m_StrArr.data(); }
 
 private:
 	size_t              __GetLen(TCHAR* _str) const { return _tcslen(_str); }
 
 private:
-	std::array<T, _maxSize> m_StrArr{};
+	std::array<TCHAR, _maxSize> m_StrArr{};
 };
-using StringBufSize = StringUtil<TCHAR, BUF_SIZE>;
+using StringBufSize = StringUtil<BUF_SIZE>;
+
 
 template<class T>
 class ObjectPool
